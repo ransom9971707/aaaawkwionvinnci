@@ -231,138 +231,143 @@
 <footer>shot on the streets ✦ developed in the group chat ✦ <b>nyc forever</b></footer>
 
 <script>
-/* ================= EDIT YOUR PICS HERE =================
-   drop your photos in the pics/ folder next to this file,
-   then just change the file names below. add or remove
-   lines, the wall re-arranges itself. keep captions unhinged. */
-const PHOTOS = [
-  {src:"pics/1_Vibrant_Nighttime_Photos_of_Times.png",      cap:"times sq at 2am, no thoughts",        size:"w-wide"},
-  {src:"pics/2_Busy_People_Walking_on_Brooklyn_Bridge.png", cap:"golden hour >>> everything else",     size:"w-tall"},
-  {src:"pics/3_75_800_New_York_City_Lights_Stock.png",      cap:"neon drowned, didn't wanna be saved", size:"w-wide"},
-  {src:"pics/4_New_York_City_Photography_Guide_Best.png",   cap:"the city said pose",                  size:"w-tall"},
-  {src:"pics/1_Roaming_SoHo_With_New_York_s_Stylish.png",   cap:"soho fits check ✔",                   size:"w-wide"},
-  {src:"pics/3_Golden_hour_at_The_Brooklyn_Bridge.png",     cap:"walked the bridge, found peace",      size:"w-tall"},
-  {src:"pics/2_110_New_York_City_Urban_Vibe_Stock.png",     cap:"little italy hits different",         size:"w-wide"},
-  {src:"pics/4_NYC_Style_Diary_The_Streets_of_Soho.png",    cap:"main character energy",               size:"w-tall"},
+// 1. Rename array to match Kimi's exact active structural lookup
+const DEFAULT_PHOTOS = [
+  {src:"pics/1_Vibrant_Nighttime_Photos_of_Times.png",      cap:"times sq at 2am, no thoughts",        size:"w-wide", by:"STREETZ ARCHIVE"},
+  {src:"pics/2_Busy_People_Walking_on_Brooklyn_Bridge.png", cap:"golden hour >>> everything else",     size:"w-tall", by:"STREETZ ARCHIVE"},
+  {src:"pics/3_75_800_New_York_City_Lights_Stock.png",      cap:"neon drowned, didn't wanna be saved", size:"w-wide", by:"STREETZ ARCHIVE"},
+  {src:"pics/4_New_York_City_Photography_Guide_Best.png",   cap:"the city said pose",                  size:"w-tall", by:"STREETZ ARCHIVE"},
+  {src:"pics/1_Roaming_SoHo_With_New_York_s_Stylish.png",   cap:"soho fits check ✔",                   size:"w-wide", by:"STREETZ ARCHIVE"},
+  {src:"pics/3_Golden_hour_at_The_Brooklyn_Bridge.png",     cap:"walked the bridge, found peace",      size:"w-tall", by:"STREETZ ARCHIVE"},
+  {src:"pics/2_110_New_York_City_Urban_Vibe_Stock.png",     cap:"little italy hits different",         size:"w-wide", by:"STREETZ ARCHIVE"},
+  {src:"pics/4_NYC_Style_Diary_The_Streets_of_Soho.png",    cap:"main character energy",               size:"w-tall", by:"STREETZ ARCHIVE"},
 ];
 
-let savedPhotos = JSON.parse(localStorage.getItem('my_archive_photos')) || [];
-if (savedPhotos.length === 0) {
-  savedPhotos = DEFAULT_PHOTOS;
-  localStorage.setItem('my_archive_photos', JSON.stringify(savedPhotos));
+// 2. Initialize memory using Kimi's active loop token variable name: PHOTOS
+let PHOTOS = JSON.parse(localStorage.getItem('my_archive_photos')) || [];
+if (PHOTOS.length === 0) {
+  PHOTOS = DEFAULT_PHOTOS;
+  localStorage.setItem('my_archive_photos', JSON.stringify(PHOTOS));
 }
 
-// Modal View Engine Hooks
+// Modal View Action Hooks
 const modal = document.getElementById('uploadModal');
-document.getElementById('openUploadBtn').addEventListener('click', (e) => { e.preventDefault(); modal.style.display = 'flex'; });
-document.getElementById('closeUploadBtn').addEventListener('click', () => { modal.style.display = 'none'; });
-
-// Rebuild UI frames inside Kimi's exact .THE.WALL container
-function renderWall() {
-  const wallGrid = document.querySelector('.THE.WALL') || document.querySelector('.THE-WALL');
-  if (!wallGrid) return;
-  wallGrid.innerHTML = '';
-
-  savedPhotos.forEach(photo => {
-    const frame = document.createElement('div');
-    frame.className = `wall-frame ${photo.size || 'w-wide'}`;
-    
-    // Assembles your exact layout template cleanly adding the uploader token
-    frame.innerHTML = `
-      <div style="font-size: 10px; text-transform: uppercase; color: #555; margin-bottom: 5px; font-family: monospace;">BY: ${photo.by || 'ANONYMOUS'}</div>
-      <img src="${photo.src}" alt="${photo.cap}">
-      <p class="caption">${photo.cap}</p>
-    `;
-    wallGrid.appendChild(frame);
-  });
+if(document.getElementById('openUploadBtn')) {
+  document.getElementById('openUploadBtn').addEventListener('click', (e) => { e.preventDefault(); modal.style.display = 'flex'; });
+}
+if(document.getElementById('closeUploadBtn')) {
+  document.getElementById('closeUploadBtn').addEventListener('click', () => { modal.style.display = 'none'; });
 }
 
-  // File Submission Pipeline Processing (FIXED VERSION)
-  document.getElementById('submitPhotoBtn').addEventListener('click', function() {
-    const uploaderInput = document.getElementById('uploaderInput');
-    const fileInput = document.getElementById('fileInput');
-    const captionInput = document.getElementById('captionInput');
-    const sizeInput = document.getElementById('sizeInput');
-
-    // Make sure a file is actually selected
-    if (!fileInput.files || fileInput.files.length === 0) {
-      alert("Select an image file asset first.");
-      return;
-    }
-
-    // FIX: Grab the exact first file from the chosen attachments array
-    const selectedFile = fileInput.files[0]; 
-
-    const reader = new FileReader();
-    reader.onload = function(event) {
-      const newPhoto = {
-        src: event.target.result,
-        by: uploaderInput.value.trim().toUpperCase() || "ANONYMOUS",
-        cap: captionInput.value.trim() || "untitled timestamp frame",
-        size: sizeInput.value
-      };
-
-      savedPhotos.unshift(newPhoto);
-      localStorage.setItem('my_archive_photos', JSON.stringify(savedPhotos));
-      renderWall();
-
-      // Wipe tracking fields and hide panel context cleanly
-      fileInput.value = '';
-      captionInput.value = '';
-      uploaderInput.value = '';
-      modal.style.display = 'none';
-    };
-    
-    // Pass the single correct file token into the reader pipeline
-    reader.readAsDataURL(selectedFile);
-  });
-
-  
 /* slightly-bent scatter: each card gets its own tilt + drop + tape angle */
 const rot = () => (Math.random()*7 - 3.5).toFixed(2) + "deg";
 const drop = () => (Math.random()*46 - 10).toFixed(0) + "px";
 const trot = () => (Math.random()*16 - 8).toFixed(1) + "deg";
 
-const wall = document.querySelector(".gallery");
-PHOTOS.forEach((p,i)=>{
-  const d = document.createElement("div");
-  d.className = "polaroid " + p.size;
-  d.style.setProperty("--rot", rot());
-  d.style.setProperty("--drop", drop());
-  d.style.setProperty("--trot", trot());
-  d.innerHTML = `<div class="tape"></div><span class="num">NO.${String(i+1).padStart(3,"0")}</span>
-                 <img src="${p.src}" alt="${p.cap}" loading="lazy"><div class="cap">${p.cap}</div>`;
-  d.addEventListener("click", ()=> openLB(i));
-  wall.appendChild(d);
-});
+// 3. Render Wall Engine: Perfectly preserved layout rendering loop
+function renderWall() {
+  const wall = document.querySelector(".gallery");
+  if (!wall) return;
+  wall.innerHTML = ''; // Safely clear timeline entries
 
-/* fade in on scroll */
-const io = new IntersectionObserver(es=>{
-  es.forEach((e)=>{ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target);} });
-},{threshold:.15});
-document.querySelectorAll(".polaroid").forEach(el=>io.observe(el));
+  PHOTOS.forEach((p, i) => {
+    const d = document.createElement("div");
+    d.className = "polaroid " + (p.size || "w-wide");
+    d.style.setProperty("--rot", rot());
+    d.style.setProperty("--drop", drop());
+    d.style.setProperty("--trot", trot());
+    
+    // Injects username beautifully above photo frame without disrupting design specs
+    d.innerHTML = `
+      <div class="tape"></div>
+      <span class="num" style="display:flex; justify-content:space-between; width: calc(100% - 20px);">
+        <span>NO.${String(i+1).padStart(3,"0")}</span>
+        <span style="color:#ff3e3e; font-size:9px; letter-spacing:0.5px;">BY: ${p.by || 'ANONYMOUS'}</span>
+      </span>
+      <img src="${p.src}" alt="${p.cap}" loading="lazy">
+      <div class="cap">${p.cap}</div>
+    `;
+    
+    d.addEventListener("click", () => openLB(i));
+    wall.appendChild(d);
+  });
+
+  /* Re-attach IntersectionObserver for fade-in scroll effect */
+  const io = new IntersectionObserver(es => {
+    es.forEach((e) => { if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target);} });
+  }, {threshold:.15});
+  document.querySelectorAll(".polaroid").forEach(el => io.observe(el));
+}
+
+// 4. File Submission Pipeline Processing
+document.getElementById('submitPhotoBtn').addEventListener('click', function() {
+  const uploaderInput = document.getElementById('uploaderInput');
+  const fileInput = document.getElementById('fileInput');
+  const captionInput = document.getElementById('captionInput');
+  const sizeInput = document.getElementById('sizeInput');
+
+  if (!fileInput.files || fileInput.files.length === 0) {
+    alert("Select an image asset first.");
+    return;
+  }
+
+  const selectedFile = fileInput.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function(event) {
+    const newPhoto = {
+      src: event.target.result,
+      by: uploaderInput.value.trim().toUpperCase() || "ANONYMOUS",
+      cap: captionInput.value.trim() || "untitled frame",
+      size: sizeInput.value
+    };
+
+    PHOTOS.unshift(newPhoto);
+    localStorage.setItem('my_archive_photos', JSON.stringify(PHOTOS));
+    renderWall();
+
+    // Clear and drop panel states
+    fileInput.value = '';
+    captionInput.value = '';
+    uploaderInput.value = '';
+    modal.style.display = 'none';
+  };
+  reader.readAsDataURL(selectedFile);
+});
 
 /* marquee content */
 const phrase = "FRESH FRAMES <em>✦</em> STRAIGHT OFF THE SD CARD <em>✦</em> NYC FOREVER <em>✦</em> NO PERMISSION NEEDED <em>✦</em> ";
-document.getElementById("mq").innerHTML = phrase.repeat(6);
+const mqElement = document.getElementById("mq");
+if(mqElement) {
+  mqElement.innerHTML = phrase.repeat(6);
+}
 
-/* lightbox */
+/* lightbox rendering configuration hooks */
 let cur = 0;
 const lb = document.getElementById("lightbox");
 function openLB(i){ cur = i; showLB(); lb.classList.add("open"); document.body.style.overflow="hidden"; }
 function closeLB(){ lb.classList.remove("open"); document.body.style.overflow=""; }
 function stepLB(n){ cur = (cur + n + PHOTOS.length) % PHOTOS.length; showLB(); }
 function showLB(){
+  if(!PHOTOS[cur]) return;
   document.getElementById("lbImg").src = PHOTOS[cur].src;
   document.getElementById("lbCap").textContent = PHOTOS[cur].cap;
 }
-lb.addEventListener("click", e=>{ if(e.target === lb) closeLB(); });
-document.addEventListener("keydown", e=>{
-  if(!lb.classList.contains("open")) return;
+if(lb) {
+  lb.addEventListener("click", e => { if(e.target === lb) closeLB(); });
+}
+document.addEventListener("keydown", e => {
+  if(!lb || !lb.classList.contains("open")) return;
   if(e.key === "Escape") closeLB();
   if(e.key === "ArrowLeft") stepLB(-1);
   if(e.key === "ArrowRight") stepLB(1);
 });
+
+// Run live baseline map engine rendering cycle instantly
+renderWall();
 </script>
+</body>
+</html>
+
 </body>
 </html>
