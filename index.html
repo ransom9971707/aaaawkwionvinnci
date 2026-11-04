@@ -277,7 +277,7 @@ function renderWall() {
     d.style.setProperty("--drop", drop());
     d.style.setProperty("--trot", trot());
     
-    // UI RESTORED: Pure classic layout output code with no extra labels.
+    // Pure classic layout output code with no extra labels.
     d.innerHTML = `<div class="tape"></div><span class="num">NO.${String(i+1).padStart(3,"0")}</span>
                    <img src="${p.src}" alt="${p.cap}" loading="lazy"><div class="cap">${p.cap}</div>`;
     
@@ -292,20 +292,20 @@ function renderWall() {
   document.querySelectorAll(".polaroid").forEach(el => io.observe(el));
 }
 
-// 4. Submission Pipeline Listener System (FIXED EXTRACTION VALUE)
+// 4. Submission Pipeline Listener System (COMPLETELY ROBUST)
 document.getElementById('submitPhotoBtn').addEventListener('click', function() {
   const uploaderInput = document.getElementById('uploaderInput');
   const fileInput = document.getElementById('fileInput');
   const captionInput = document.getElementById('captionInput');
   const sizeInput = document.getElementById('sizeInput');
 
-  if (!fileInput.files || fileInput.files.length === 0) {
+  if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
     alert("Select an image asset file first.");
     return;
   }
 
-  // FIXED: Explicitly grab the first selected object from the files collection index array
-  const selectedFile = fileInput.files[0]; 
+  // Robust target assignment explicitly extracting the first file item
+  const targetImageFile = fileInput.files[0]; 
   const reader = new FileReader();
 
   reader.onload = function(event) {
@@ -327,8 +327,8 @@ document.getElementById('submitPhotoBtn').addEventListener('click', function() {
     modal.style.display = 'none';
   };
   
-  // FIXED: Pass the exact file target to the processor runtime loop
-  reader.readAsDataURL(selectedFile);
+  // Pass the clean, extracted file reference to browser conversion engine
+  reader.readAsDataURL(targetImageFile);
 });
 
 /* marquee runner setup loops */
@@ -364,4 +364,5 @@ renderWall();
 </script>
 </body>
 </html>
+
 
