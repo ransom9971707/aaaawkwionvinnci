@@ -230,25 +230,23 @@
 
 <footer>shot on the streets ✦ developed in the group chat ✦ <b>nyc forever</b></footer>
 
+<!-- RUNTIME JAVASCRIPT: Safe for Public GitHub Repositories -->
 <script>
-// 1. Base snapshot array configuration setup
+// 1. Base snapshot array configuration setup (Hardcoded Kimi defaults)
 const DEFAULT_PHOTOS = [
-  {src:"pics/1_Vibrant_Nighttime_Photos_of_Times.png",      cap:"times sq at 2am, no thoughts",        size:"w-wide", by:"STREETZ ARCHIVE"},
-  {src:"pics/2_Busy_People_Walking_on_Brooklyn_Bridge.png", cap:"golden hour >>> everything else",     size:"w-tall", by:"STREETZ ARCHIVE"},
-  {src:"pics/3_75_800_New_York_City_Lights_Stock.png",      cap:"neon drowned, didn't wanna be saved", size:"w-wide", by:"STREETZ ARCHIVE"},
-  {src:"pics/4_New_York_City_Photography_Guide_Best.png",   cap:"the city said pose",                  size:"w-tall", by:"STREETZ ARCHIVE"},
-  {src:"pics/1_Roaming_SoHo_With_New_York_s_Stylish.png",   cap:"soho fits check ✔",                   size:"w-wide", by:"STREETZ ARCHIVE"},
-  {src:"pics/3_Golden_hour_at_The_Brooklyn_Bridge.png",     cap:"walked the bridge, found peace",      size:"w-tall", by:"STREETZ ARCHIVE"},
-  {src:"pics/2_110_New_York_City_Urban_Vibe_Stock.png",     cap:"little italy hits different",         size:"w-wide", by:"STREETZ ARCHIVE"},
-  {src:"pics/4_NYC_Style_Diary_The_Streets_of_Soho.png",    cap:"main character energy",               size:"w-tall", by:"STREETZ ARCHIVE"},
+  {src:"pics/1_Vibrant_Nighttime_Photos_of_Times.png",      cap:"times sq at 2am, no thoughts",        size:"w-wide"},
+  {src:"pics/2_Busy_People_Walking_on_Brooklyn_Bridge.png", cap:"golden hour >>> everything else",     size:"w-tall"},
+  {src:"pics/3_75_800_New_York_City_Lights_Stock.png",      cap:"neon drowned, didn't wanna be saved", size:"w-wide"},
+  {src:"pics/4_New_York_City_Photography_Guide_Best.png",   cap:"the city said pose",                  size:"w-tall"},
+  {src:"pics/1_Roaming_SoHo_With_New_York_s_Stylish.png",   cap:"soho fits check ✔",                   size:"w-wide"},
+  {src:"pics/3_Golden_hour_at_The_Brooklyn_Bridge.png",     cap:"walked the bridge, found peace",      size:"w-tall"},
+  {src:"pics/2_110_New_York_City_Urban_Vibe_Stock.png",     cap:"little italy hits different",         size:"w-wide"},
+  {src:"pics/4_NYC_Style_Diary_The_Streets_of_Soho.png",    cap:"main character energy",               size:"w-tall"},
 ];
 
-// 2. Initialize or reload data memory states
-let PHOTOS = JSON.parse(localStorage.getItem('my_archive_photos')) || [];
-if (PHOTOS.length === 0) {
-  PHOTOS = DEFAULT_PHOTOS;
-  localStorage.setItem('my_archive_photos', JSON.stringify(PHOTOS));
-}
+// 2. Load local view configurations for the current browser session fallback
+let userPhotos = JSON.parse(localStorage.getItem('my_uploaded_photos')) || [];
+let PHOTOS = [...userPhotos, ...DEFAULT_PHOTOS];
 
 // Modal View Component Toggle Controller
 const modal = document.getElementById('uploadModal');
@@ -264,20 +262,21 @@ const rot = () => (Math.random()*7 - 3.5).toFixed(2) + "deg";
 const drop = () => (Math.random()*46 - 10).toFixed(0) + "px";
 const trot = () => (Math.random()*16 - 8).toFixed(1) + "deg";
 
-// 3. Grid Rendering Engine (UI Cleaned: Restored to original numbers only)
+// 3. Grid Rendering Engine (Keeps your pristine Polaroid UI)
 function renderWall() {
   const wall = document.querySelector(".gallery");
   if (!wall) return;
-  wall.innerHTML = ''; // Safely drop entry items to rewrite loop cleanly
+  wall.innerHTML = ''; 
 
   PHOTOS.forEach((p, i) => {
+    // Alternate size shapes dynamically so cards naturally look scattered
+    const computedSize = p.size || (i % 2 === 0 ? "w-wide" : "w-tall");
     const d = document.createElement("div");
-    d.className = "polaroid " + (p.size || "w-wide");
+    d.className = "polaroid " + computedSize;
     d.style.setProperty("--rot", rot());
     d.style.setProperty("--drop", drop());
     d.style.setProperty("--trot", trot());
     
-    // UI FIXED: Reverted back to the original clean text alignment
     d.innerHTML = `<div class="tape"></div><span class="num">NO.${String(i+1).padStart(3,"0")}</span>
                    <img src="${p.src}" alt="${p.cap}" loading="lazy"><div class="cap">${p.cap}</div>`;
     
@@ -285,56 +284,77 @@ function renderWall() {
     wall.appendChild(d);
   });
 
-  /* Trigger Scroll Fade Listeners safely */
+  /* Trigger Scroll Fade Listeners */
   const io = new IntersectionObserver(es => {
     es.forEach((e) => { if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target);} });
   }, {threshold:.15});
   document.querySelectorAll(".polaroid").forEach(el => io.observe(el));
 }
 
-// 4. Submission Pipeline Listener System 
+// 4. Submission Pipeline: KEYLESS PUBLIC UPLOAD PIPELINE
 document.getElementById('submitPhotoBtn').addEventListener('click', function() {
-  const uploaderInput = document.getElementById('uploaderInput');
   const fileInput = document.getElementById('fileInput');
   const captionInput = document.getElementById('captionInput');
-  const sizeInput = document.getElementById('sizeInput');
+  const submitBtn = document.getElementById('submitPhotoBtn');
 
-  if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+  if (!fileInput.files || fileInput.files.length === 0) {
     alert("Select an image asset file first.");
     return;
   }
 
-  const selectedFile = fileInput.files[0]; 
-  const reader = new FileReader();
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Uploading Live...";
 
-  reader.onload = function(event) {
-    const newPhoto = {
-      src: event.target.result,
-      by: uploaderInput ? uploaderInput.value.trim().toUpperCase() || "ANONYMOUS" : "ANONYMOUS",
-      cap: captionInput.value.trim() || "untitled frame",
-      size: sizeInput.value
-    };
+  // We convert the file to a standard web form package
+  const formData = new FormData();
+  formData.append("source", fileInput.files[0]);
+  formData.append("type", "file");
+  formData.append("action", "upload");
 
-    PHOTOS.unshift(newPhoto);
-    localStorage.setItem('my_archive_photos', JSON.stringify(PHOTOS));
-    renderWall();
+  // SECURITY FIX: Route to the open guest gateway instead of your personal API endpoint
+  fetch("https://imgbb.com", {
+    method: "POST",
+    body: formData
+  })
+  .then(response => response.json())
+  .then(result => {
+    // Check if the server accepted the anonymous image file payload
+    if (result && result.status_code === 200 && result.image && result.image.url) {
+      const newPhoto = {
+        src: result.image.url, // The absolute universal cloud image web URL
+        cap: captionInput.value.trim() || "untitled frame"
+      };
 
-    // Reset fields and close modal smoothly
-    fileInput.value = '';
-    captionInput.value = '';
-    if(uploaderInput) uploaderInput.value = '';
-    modal.style.display = 'none';
-  };
-  
-  reader.readAsDataURL(selectedFile);
+      // Push it live into temporary session caching structures
+      userPhotos.unshift(newPhoto);
+      localStorage.setItem('my_uploaded_photos', JSON.stringify(userPhotos));
+      
+      // Merge datasets instantly to refresh UI states
+      PHOTOS = [...userPhotos, ...DEFAULT_PHOTOS];
+      renderWall();
+
+      // Reset fields and smoothly shut panel modal overlays
+      fileInput.value = '';
+      captionInput.value = '';
+      modal.style.display = 'none';
+    } else {
+      alert("Upload failed. The image might be too large or invalid.");
+    }
+  })
+  .catch(error => {
+    console.error("Submission Error:", error);
+    alert("Connection error. Try again.");
+  })
+  .finally(() => {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Post Live";
+  });
 });
 
 /* marquee runner setup loops */
 const phrase = "FRESH FRAMES <em>✦</em> STRAIGHT OFF THE SD CARD <em>✦</em> NYC FOREVER <em>✦</em> NO PERMISSION NEEDED <em>✦</em> ";
 const mqElement = document.getElementById("mq");
-if(mqElement) {
-  mqElement.innerHTML = phrase.repeat(6);
-}
+if(mqElement) { mqElement.innerHTML = phrase.repeat(6); }
 
 /* Lightbox popup interactions */
 let cur = 0;
@@ -347,9 +367,7 @@ function showLB(){
   document.getElementById("lbImg").src = PHOTOS[cur].src;
   document.getElementById("lbCap").textContent = PHOTOS[cur].cap;
 }
-if(lb) {
-  lb.addEventListener("click", e => { if(e.target === lb) closeLB(); });
-}
+if(lb) { lb.addEventListener("click", e => { if(e.target === lb) closeLB(); }); }
 document.addEventListener("keydown", e => {
   if(!lb || !lb.classList.contains("open")) return;
   if(e.key === "Escape") closeLB();
