@@ -277,41 +277,46 @@ function renderWall() {
   });
 }
 
-// Multi-Input Form Controller Runtime
-document.getElementById('submitPhotoBtn').addEventListener('click', function() {
-  const uploaderInput = document.getElementById('uploaderInput');
-  const fileInput = document.getElementById('fileInput');
-  const captionInput = document.getElementById('captionInput');
-  const sizeInput = document.getElementById('sizeInput');
+  // File Submission Pipeline Processing (FIXED VERSION)
+  document.getElementById('submitPhotoBtn').addEventListener('click', function() {
+    const uploaderInput = document.getElementById('uploaderInput');
+    const fileInput = document.getElementById('fileInput');
+    const captionInput = document.getElementById('captionInput');
+    const sizeInput = document.getElementById('sizeInput');
 
-  if (!fileInput.files || fileInput.files.length === 0) {
-    alert("Select an image asset first.");
-    return;
-  }
+    // Make sure a file is actually selected
+    if (!fileInput.files || fileInput.files.length === 0) {
+      alert("Select an image file asset first.");
+      return;
+    }
 
-  const reader = new FileReader();
-  reader.onload = function(event) {
-    const newPhoto = {
-      src: event.target.result,
-      by: uploaderInput.value.trim().toUpperCase() || "ANONYMOUS",
-      cap: captionInput.value.trim() || "untitled frame",
-      size: sizeInput.value
+    // FIX: Grab the exact first file from the chosen attachments array
+    const selectedFile = fileInput.files[0]; 
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const newPhoto = {
+        src: event.target.result,
+        by: uploaderInput.value.trim().toUpperCase() || "ANONYMOUS",
+        cap: captionInput.value.trim() || "untitled timestamp frame",
+        size: sizeInput.value
+      };
+
+      savedPhotos.unshift(newPhoto);
+      localStorage.setItem('my_archive_photos', JSON.stringify(savedPhotos));
+      renderWall();
+
+      // Wipe tracking fields and hide panel context cleanly
+      fileInput.value = '';
+      captionInput.value = '';
+      uploaderInput.value = '';
+      modal.style.display = 'none';
     };
+    
+    // Pass the single correct file token into the reader pipeline
+    reader.readAsDataURL(selectedFile);
+  });
 
-    savedPhotos.unshift(newPhoto);
-    localStorage.setItem('my_archive_photos', JSON.stringify(savedPhotos));
-    renderWall();
-
-    // Clear and drop panel states
-    fileInput.value = '';
-    captionInput.value = '';
-    uploaderInput.value = '';
-    modal.style.display = 'none';
-  };
-  reader.readAsDataURL(fileInput.files);
-});
-
-renderWall();
   
 /* slightly-bent scatter: each card gets its own tilt + drop + tape angle */
 const rot = () => (Math.random()*7 - 3.5).toFixed(2) + "deg";
