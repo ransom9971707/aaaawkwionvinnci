@@ -231,8 +231,18 @@
 <footer>shot on the streets ✦ developed in the group chat ✦ <b>nyc forever</b></footer>
 
 <!-- RUNTIME JAVASCRIPT: Safe for Public GitHub Repositories -->
+<!-- Include the official, safe Supabase CDN script directly in the document footer -->
+<script src="https://jsdelivr.net"></script>
+
 <script>
-// 1. Base snapshot array configuration setup (Your original Kimi defaults)
+// ✦ CONFIGURATION MATRIX: Paste your public Supabase credentials here!
+const SUPABASE_URL = "YOUR_SUPABASE_PROJECT_URL";
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_PUBLIC_KEY";
+
+// Initialize the cloud storage engine connector instance
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// 1. Base snapshot array configuration setup (Kimi hardcoded fallbacks)
 const DEFAULT_PHOTOS = [
   {src:"pics/1_Vibrant_Nighttime_Photos_of_Times.png",      cap:"times sq at 2am, no thoughts",        size:"w-wide"},
   {src:"pics/2_Busy_People_Walking_on_Brooklyn_Bridge.png", cap:"golden hour >>> everything else",     size:"w-tall"},
@@ -244,7 +254,7 @@ const DEFAULT_PHOTOS = [
   {src:"pics/4_NYC_Style_Diary_The_Streets_of_Soho.png",    cap:"main character energy",               size:"w-tall"},
 ];
 
-// Initialize dataset directly from defaults to ensure zero freezing crashes
+// Active layout container array
 let PHOTOS = [...DEFAULT_PHOTOS];
 
 // Modal View Component Toggle Controller
@@ -261,7 +271,7 @@ const rot = () => (Math.random()*7 - 3.5).toFixed(2) + "deg";
 const drop = () => (Math.random()*46 - 10).toFixed(0) + "px";
 const trot = () => (Math.random()*16 - 8).toFixed(1) + "deg";
 
-// 3. Grid Rendering Engine (Completely clean, original aesthetic layout)
+// 3. Dynamic Grid Rendering Engine
 function renderWall() {
   const wall = document.querySelector(".gallery");
   if (!wall) return;
@@ -289,19 +299,104 @@ function renderWall() {
   document.querySelectorAll(".polaroid").forEach(el => io.observe(el));
 }
 
-// 4. Safe GitHub Form Fallback Actions
-if(document.getElementById('submitPhotoBtn')) {
-  document.getElementById('submitPhotoBtn').addEventListener('click', function(e) {
-    alert("To add public images globally onto GitHub Pages safely without a broken database key, link a free processing service form endpoint or an open submission collection route next!");
-  });
+// 3.5 Fetch Live Public Images from Cloud Database
+async function fetchCloudPhotos() {
+  try {
+    // List all files stored inside the public bucket
+    const { data, error } = await supabase.storage.from('photos').list('', {
+      limit: 100,
+      sortBy: { column: 'created_at', order: 'desc' }
+    });
+
+    if (error) throw error;
+
+    if (data && data.length > 0) {
+      const cloudPhotos = data.map(file => {
+        // Construct the universal public web link URL for each image
+        const publicUrl = supabase.storage.from('photos').getPublicUrl(file.name).data.publicUrl;
+        
+        // Decode the caption text stored inside the custom filenames safely
+        let extractedCaption = "untitled frame";
+        try {
+          if(file.name.includes('___')) {
+            const parts = file.name.split('___');
+            const capWithExt = parts[1];
+            extractedCaption = decodeURIComponent(capWithExt.substring(0, capWithExt.lastIndexOf('.')));
+          }
+        } catch(e) { console.error(e); }
+
+        return {
+          src: publicUrl,
+          cap: extractedCaption
+        };
+      });
+
+      // Merge global entries dynamically onto the front of the timeline grid arrays
+      PHOTOS = [...cloudPhotos, ...DEFAULT_PHOTOS];
+      renderWall();
+    }
+  } catch (err) {
+    console.error("Cloud synchronisation failure:", err);
+  }
 }
+
+// 4. Submission Pipeline Listener System (Global Cloud Send Engine)
+document.getElementById('submitPhotoBtn').addEventListener('click', async function() {
+  const fileInput = document.getElementById('fileInput');
+  const captionInput = document.getElementById('captionInput');
+  const submitBtn = document.getElementById('submitPhotoBtn');
+
+  if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
+    alert("Select an image asset file first.");
+    return;
+  }
+
+  if (SUPABASE_URL === "YOUR_SUPABASE_PROJECT_URL") {
+    alert("Initialization token missing. Wire your Supabase credentials into the script block first!");
+    return;
+  }
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = "Uploading Live...";
+
+  const targetFile = fileInput.files[0];
+  const fileExt = targetFile.name.split('.').pop();
+  
+  // Format the caption inside the asset payload filename securely to bypass complex DB tables
+  const cleanCaption = encodeURIComponent(captionInput.value.trim() || "untitled frame");
+  const uniqueFileName = `${Date.now()}___${cleanCaption}.${fileExt}`;
+
+  try {
+    // Ship the binary file data directly up to the global Supabase public server vault
+    const { data, error } = await supabase.storage
+      .from('photos')
+      .upload(uniqueFileName, targetFile, {
+        cacheControl: '3600',
+        upsert: false
+      });
+
+    if (error) throw error;
+
+    // Reset parameters, close view modal panel, and force global frame data fetch refresh instantly
+    fileInput.value = '';
+    captionInput.value = '';
+    modal.style.display = 'none';
+    
+    await fetchCloudPhotos();
+
+  } catch (err) {
+    console.error("Cloud broadcast exception:", err);
+    alert("Upload failed. Verify your bucket named 'photos' is set to Public.");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Post Live";
+  }
+});
 
 /* marquee runner setup loops */
 const phrase = "FRESH FRAMES <em>✦</em> STRAIGHT OFF THE SD CARD <em>✦</em> NYC FOREVER <em>✦</em> NO PERMISSION NEEDED <em>✦</em> ";
 const mqElement = document.getElementById("mq");
-if(mqElement) {
-  mqElement.innerHTML = phrase.repeat(6);
-}
+if(mqElement) { mqElement.innerHTML = phrase.repeat(6); }
 
 /* Lightbox popup interactions */
 let cur = 0;
@@ -314,9 +409,7 @@ function showLB(){
   document.getElementById("lbImg").src = PHOTOS[cur].src;
   document.getElementById("lbCap").textContent = PHOTOS[cur].cap;
 }
-if(lb) {
-  lb.addEventListener("click", e => { if(e.target === lb) closeLB(); });
-}
+if(lb) { lb.addEventListener("click", e => { if(e.target === lb) closeLB(); }); }
 document.addEventListener("keydown", e => {
   if(!lb || !lb.classList.contains("open")) return;
   if(e.key === "Escape") closeLB();
@@ -324,8 +417,10 @@ document.addEventListener("keydown", e => {
   if(e.key === "ArrowRight") stepLB(1);
 });
 
-// Run layout generator engine instantly
+// Run baseline renderer engine and instantly sync global user entries
 renderWall();
+fetchCloudPhotos();
 </script>
 </body>
 </html>
+
