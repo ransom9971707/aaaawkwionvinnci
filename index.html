@@ -232,7 +232,7 @@
 
 <!-- RUNTIME JAVASCRIPT: Safe for Public GitHub Repositories -->
 <script>
-// 1. Base snapshot array configuration setup (Hardcoded Kimi defaults)
+// 1. Base snapshot array configuration setup (Your original Kimi defaults)
 const DEFAULT_PHOTOS = [
   {src:"pics/1_Vibrant_Nighttime_Photos_of_Times.png",      cap:"times sq at 2am, no thoughts",        size:"w-wide"},
   {src:"pics/2_Busy_People_Walking_on_Brooklyn_Bridge.png", cap:"golden hour >>> everything else",     size:"w-tall"},
@@ -244,9 +244,8 @@ const DEFAULT_PHOTOS = [
   {src:"pics/4_NYC_Style_Diary_The_Streets_of_Soho.png",    cap:"main character energy",               size:"w-tall"},
 ];
 
-// 2. Load local view configurations for the current browser session fallback
-let userPhotos = JSON.parse(localStorage.getItem('my_uploaded_photos')) || [];
-let PHOTOS = [...userPhotos, ...DEFAULT_PHOTOS];
+// Initialize dataset directly from defaults to ensure zero freezing crashes
+let PHOTOS = [...DEFAULT_PHOTOS];
 
 // Modal View Component Toggle Controller
 const modal = document.getElementById('uploadModal');
@@ -262,14 +261,13 @@ const rot = () => (Math.random()*7 - 3.5).toFixed(2) + "deg";
 const drop = () => (Math.random()*46 - 10).toFixed(0) + "px";
 const trot = () => (Math.random()*16 - 8).toFixed(1) + "deg";
 
-// 3. Grid Rendering Engine (Keeps your pristine Polaroid UI)
+// 3. Grid Rendering Engine (Completely clean, original aesthetic layout)
 function renderWall() {
   const wall = document.querySelector(".gallery");
   if (!wall) return;
   wall.innerHTML = ''; 
 
   PHOTOS.forEach((p, i) => {
-    // Alternate size shapes dynamically so cards naturally look scattered
     const computedSize = p.size || (i % 2 === 0 ? "w-wide" : "w-tall");
     const d = document.createElement("div");
     d.className = "polaroid " + computedSize;
@@ -291,70 +289,19 @@ function renderWall() {
   document.querySelectorAll(".polaroid").forEach(el => io.observe(el));
 }
 
-// 4. Submission Pipeline: KEYLESS PUBLIC UPLOAD PIPELINE
-document.getElementById('submitPhotoBtn').addEventListener('click', function() {
-  const fileInput = document.getElementById('fileInput');
-  const captionInput = document.getElementById('captionInput');
-  const submitBtn = document.getElementById('submitPhotoBtn');
-
-  if (!fileInput.files || fileInput.files.length === 0) {
-    alert("Select an image asset file first.");
-    return;
-  }
-
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Uploading Live...";
-
-  // We convert the file to a standard web form package
-  const formData = new FormData();
-  formData.append("source", fileInput.files[0]);
-  formData.append("type", "file");
-  formData.append("action", "upload");
-
-  // SECURITY FIX: Route to the open guest gateway instead of your personal API endpoint
-  fetch("https://imgbb.com", {
-    method: "POST",
-    body: formData
-  })
-  .then(response => response.json())
-  .then(result => {
-    // Check if the server accepted the anonymous image file payload
-    if (result && result.status_code === 200 && result.image && result.image.url) {
-      const newPhoto = {
-        src: result.image.url, // The absolute universal cloud image web URL
-        cap: captionInput.value.trim() || "untitled frame"
-      };
-
-      // Push it live into temporary session caching structures
-      userPhotos.unshift(newPhoto);
-      localStorage.setItem('my_uploaded_photos', JSON.stringify(userPhotos));
-      
-      // Merge datasets instantly to refresh UI states
-      PHOTOS = [...userPhotos, ...DEFAULT_PHOTOS];
-      renderWall();
-
-      // Reset fields and smoothly shut panel modal overlays
-      fileInput.value = '';
-      captionInput.value = '';
-      modal.style.display = 'none';
-    } else {
-      alert("Upload failed. The image might be too large or invalid.");
-    }
-  })
-  .catch(error => {
-    console.error("Submission Error:", error);
-    alert("Connection error. Try again.");
-  })
-  .finally(() => {
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Post Live";
+// 4. Safe GitHub Form Fallback Actions
+if(document.getElementById('submitPhotoBtn')) {
+  document.getElementById('submitPhotoBtn').addEventListener('click', function(e) {
+    alert("To add public images globally onto GitHub Pages safely without a broken database key, link a free processing service form endpoint or an open submission collection route next!");
   });
-});
+}
 
 /* marquee runner setup loops */
 const phrase = "FRESH FRAMES <em>✦</em> STRAIGHT OFF THE SD CARD <em>✦</em> NYC FOREVER <em>✦</em> NO PERMISSION NEEDED <em>✦</em> ";
 const mqElement = document.getElementById("mq");
-if(mqElement) { mqElement.innerHTML = phrase.repeat(6); }
+if(mqElement) {
+  mqElement.innerHTML = phrase.repeat(6);
+}
 
 /* Lightbox popup interactions */
 let cur = 0;
@@ -367,7 +314,9 @@ function showLB(){
   document.getElementById("lbImg").src = PHOTOS[cur].src;
   document.getElementById("lbCap").textContent = PHOTOS[cur].cap;
 }
-if(lb) { lb.addEventListener("click", e => { if(e.target === lb) closeLB(); }); }
+if(lb) {
+  lb.addEventListener("click", e => { if(e.target === lb) closeLB(); });
+}
 document.addEventListener("keydown", e => {
   if(!lb || !lb.classList.contains("open")) return;
   if(e.key === "Escape") closeLB();
