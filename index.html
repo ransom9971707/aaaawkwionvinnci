@@ -161,12 +161,42 @@
 </head>
 <body>
 
+<!-- Completely hidden upload pop-up panel -->
+<div id="uploadModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 99999; justify-content: center; align-items: center; font-family: monospace; letter-spacing: 1px;">
+  <div style="background: #000; border: 1px solid #222; padding: 30px; width: 90%; max-width: 400px; position: relative; box-shadow: 0 0 20px rgba(255,255,255,0.05);">
+    
+    <span id="closeUploadBtn" style="position: absolute; top: 15px; right: 20px; color: #666; cursor: pointer; font-size: 18px;">✕</span>
+    
+    <h3 style="margin-top: 0; margin-bottom: 25px; font-size: 13px; text-transform: uppercase; color: #fff; border-bottom: 1px solid #111; padding-bottom: 10px;">ADD FRAME TO THE WALL</h3>
+    
+    <div style="margin-bottom: 15px;">
+      <input type="text" id="uploaderInput" placeholder="YOUR NAME" style="width: 100%; padding: 10px; background: #000; color: #fff; border: 1px solid #222; font-family: monospace; box-sizing: border-box; text-transform: uppercase; font-size: 12px;">
+    </div>
+    
+    <div style="margin-bottom: 15px;">
+      <input type="text" id="captionInput" placeholder="CAPTION / THOUGHT" style="width: 100%; padding: 10px; background: #000; color: #fff; border: 1px solid #222; font-family: monospace; box-sizing: border-box; font-size: 12px;">
+    </div>
+    
+    <div style="margin-bottom: 20px; display: flex; gap: 10px; align-items: center;">
+      <input type="file" id="fileInput" accept="image/*" style="font-size: 11px; color: #666; font-family: monospace; width: 60%;">
+      <select id="sizeInput" style="background: #000; color: #fff; border: 1px solid #222; font-family: monospace; padding: 8px; width: 40%; font-size: 11px;">
+        <option value="w-wide">w-wide</option>
+        <option value="w-tall">w-tall</option>
+      </select>
+    </div>
+    
+    <button id="submitPhotoBtn" style="width: 100%; padding: 12px; background: #fff; color: #000; border: none; font-weight: bold; font-family: monospace; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; font-size: 12px;">Post Live</button>
+  </div>
+</div>
+
+  
 <nav>
   <div class="logo">STREET<span>Z</span> ✦ ARCHIVE</div>
   <div class="nav-links">
     <a href="#wall">The Wall</a>
     <a href="#wall">Film</a>
     <a href="#wall">Contact</a>
+    <a href="#wall" id="openUploadBtn" style="color: #ff3e3e; margin-left: 15px; font-weight: bold; text-decoration: none;">✦ UPLOAD</a>
   </div>
 </nav>
 
@@ -216,6 +246,73 @@ const PHOTOS = [
   {src:"pics/4_NYC_Style_Diary_The_Streets_of_Soho.png",    cap:"main character energy",               size:"w-tall"},
 ];
 
+let savedPhotos = JSON.parse(localStorage.getItem('my_archive_photos')) || [];
+if (savedPhotos.length === 0) {
+  savedPhotos = DEFAULT_PHOTOS;
+  localStorage.setItem('my_archive_photos', JSON.stringify(savedPhotos));
+}
+
+// Modal View Engine Hooks
+const modal = document.getElementById('uploadModal');
+document.getElementById('openUploadBtn').addEventListener('click', (e) => { e.preventDefault(); modal.style.display = 'flex'; });
+document.getElementById('closeUploadBtn').addEventListener('click', () => { modal.style.display = 'none'; });
+
+// Rebuild UI frames inside Kimi's exact .THE.WALL container
+function renderWall() {
+  const wallGrid = document.querySelector('.THE.WALL') || document.querySelector('.THE-WALL');
+  if (!wallGrid) return;
+  wallGrid.innerHTML = '';
+
+  savedPhotos.forEach(photo => {
+    const frame = document.createElement('div');
+    frame.className = `wall-frame ${photo.size || 'w-wide'}`;
+    
+    // Assembles your exact layout template cleanly adding the uploader token
+    frame.innerHTML = `
+      <div style="font-size: 10px; text-transform: uppercase; color: #555; margin-bottom: 5px; font-family: monospace;">BY: ${photo.by || 'ANONYMOUS'}</div>
+      <img src="${photo.src}" alt="${photo.cap}">
+      <p class="caption">${photo.cap}</p>
+    `;
+    wallGrid.appendChild(frame);
+  });
+}
+
+// Multi-Input Form Controller Runtime
+document.getElementById('submitPhotoBtn').addEventListener('click', function() {
+  const uploaderInput = document.getElementById('uploaderInput');
+  const fileInput = document.getElementById('fileInput');
+  const captionInput = document.getElementById('captionInput');
+  const sizeInput = document.getElementById('sizeInput');
+
+  if (!fileInput.files || fileInput.files.length === 0) {
+    alert("Select an image asset first.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const newPhoto = {
+      src: event.target.result,
+      by: uploaderInput.value.trim().toUpperCase() || "ANONYMOUS",
+      cap: captionInput.value.trim() || "untitled frame",
+      size: sizeInput.value
+    };
+
+    savedPhotos.unshift(newPhoto);
+    localStorage.setItem('my_archive_photos', JSON.stringify(savedPhotos));
+    renderWall();
+
+    // Clear and drop panel states
+    fileInput.value = '';
+    captionInput.value = '';
+    uploaderInput.value = '';
+    modal.style.display = 'none';
+  };
+  reader.readAsDataURL(fileInput.files);
+});
+
+renderWall();
+  
 /* slightly-bent scatter: each card gets its own tilt + drop + tape angle */
 const rot = () => (Math.random()*7 - 3.5).toFixed(2) + "deg";
 const drop = () => (Math.random()*46 - 10).toFixed(0) + "px";
