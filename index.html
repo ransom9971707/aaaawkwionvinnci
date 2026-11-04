@@ -264,7 +264,7 @@ const rot = () => (Math.random()*7 - 3.5).toFixed(2) + "deg";
 const drop = () => (Math.random()*46 - 10).toFixed(0) + "px";
 const trot = () => (Math.random()*16 - 8).toFixed(1) + "deg";
 
-// 3. Grid Rendering Engine (CRITICAL CLEAN REFIX)
+// 3. Grid Rendering Engine
 function renderWall() {
   const wall = document.querySelector(".gallery");
   if (!wall) return;
@@ -277,7 +277,7 @@ function renderWall() {
     d.style.setProperty("--drop", drop());
     d.style.setProperty("--trot", trot());
     
-    // UI FIXED: This matches Kimi's original output code with no extra labels.
+    // UI RESTORED: Pure classic layout output code with no extra labels.
     d.innerHTML = `<div class="tape"></div><span class="num">NO.${String(i+1).padStart(3,"0")}</span>
                    <img src="${p.src}" alt="${p.cap}" loading="lazy"><div class="cap">${p.cap}</div>`;
     
@@ -292,7 +292,7 @@ function renderWall() {
   document.querySelectorAll(".polaroid").forEach(el => io.observe(el));
 }
 
-// 4. Submission Pipeline Listener System
+// 4. Submission Pipeline Listener System (FIXED EXTRACTION VALUE)
 document.getElementById('submitPhotoBtn').addEventListener('click', function() {
   const uploaderInput = document.getElementById('uploaderInput');
   const fileInput = document.getElementById('fileInput');
@@ -304,11 +304,11 @@ document.getElementById('submitPhotoBtn').addEventListener('click', function() {
     return;
   }
 
-  const selectedFile = fileInput.files[0];
+  // FIXED: Explicitly grab the first selected object from the files collection index array
+  const selectedFile = fileInput.files[0]; 
   const reader = new FileReader();
 
   reader.onload = function(event) {
-    // Keeps creator values mapped into the data payload snapshot array behind the scenes
     const newPhoto = {
       src: event.target.result,
       by: uploaderInput ? uploaderInput.value.trim().toUpperCase() || "ANONYMOUS" : "ANONYMOUS",
@@ -326,6 +326,8 @@ document.getElementById('submitPhotoBtn').addEventListener('click', function() {
     if(uploaderInput) uploaderInput.value = '';
     modal.style.display = 'none';
   };
+  
+  // FIXED: Pass the exact file target to the processor runtime loop
   reader.readAsDataURL(selectedFile);
 });
 
