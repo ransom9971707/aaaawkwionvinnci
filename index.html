@@ -188,6 +188,7 @@
     <button id="submitPhotoBtn" style="width: 100%; padding: 12px; background: #fff; color: #000; border: none; font-weight: bold; font-family: monospace; cursor: pointer; text-transform: uppercase; letter-spacing: 1px; font-size: 12px;">Post Live</button>
   </div>
 </div>
+
   
 <nav>
   <div class="logo">STREET<span>Z</span> ✦ ARCHIVE</div>
@@ -229,16 +230,12 @@
 
 <footer>shot on the streets ✦ developed in the group chat ✦ <b>nyc forever</b></footer>
 
-
 <script>
-// ✦ CONFIGURATION MATRIX: Paste your public Supabase credentials here!
-const SUPABASE_URL = "https://supabase.com/dashboard/project/klwbozvsxsbtarrsyulh/storage/files/buckets/photos";
-const SUPABASE_ANON_KEY = "sb_publishable_0-eOZkAvNpd-2Lpf42j9yQ_ASksrwQF";
-
-// Initialize the cloud database instance safely
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-const DEFAULT_PHOTOS = [
+/* ================= EDIT YOUR PICS HERE =================
+   drop your photos in the pics/ folder next to this file,
+   then just change the file names below. add or remove
+   lines, the wall re-arranges itself. keep captions unhinged. */
+const PHOTOS = [
   {src:"pics/1_Vibrant_Nighttime_Photos_of_Times.png",      cap:"times sq at 2am, no thoughts",        size:"w-wide"},
   {src:"pics/2_Busy_People_Walking_on_Brooklyn_Bridge.png", cap:"golden hour >>> everything else",     size:"w-tall"},
   {src:"pics/3_75_800_New_York_City_Lights_Stock.png",      cap:"neon drowned, didn't wanna be saved", size:"w-wide"},
@@ -249,141 +246,97 @@ const DEFAULT_PHOTOS = [
   {src:"pics/4_NYC_Style_Diary_The_Streets_of_Soho.png",    cap:"main character energy",               size:"w-tall"},
 ];
 
-let PHOTOS = [...DEFAULT_PHOTOS];
+let savedPhotos = JSON.parse(localStorage.getItem('my_archive_photos')) || [];
+if (savedPhotos.length === 0) {
+  savedPhotos = DEFAULT_PHOTOS;
+  localStorage.setItem('my_archive_photos', JSON.stringify(savedPhotos));
+}
 
-// Modal View Component Toggle Controller
+// Modal View Engine Hooks
 const modal = document.getElementById('uploadModal');
-if(document.getElementById('openUploadBtn')) {
-  document.getElementById('openUploadBtn').addEventListener('click', (e) => { e.preventDefault(); modal.style.display = 'flex'; });
-}
-if(document.getElementById('closeUploadBtn')) {
-  document.getElementById('closeUploadBtn').addEventListener('click', () => { modal.style.display = 'none'; });
+document.getElementById('openUploadBtn').addEventListener('click', (e) => { e.preventDefault(); modal.style.display = 'flex'; });
+document.getElementById('closeUploadBtn').addEventListener('click', () => { modal.style.display = 'none'; });
+
+// Rebuild UI frames inside Kimi's exact .THE.WALL container
+function renderWall() {
+  const wallGrid = document.querySelector('.THE.WALL') || document.querySelector('.THE-WALL');
+  if (!wallGrid) return;
+  wallGrid.innerHTML = '';
+
+  savedPhotos.forEach(photo => {
+    const frame = document.createElement('div');
+    frame.className = `wall-frame ${photo.size || 'w-wide'}`;
+    
+    // Assembles your exact layout template cleanly adding the uploader token
+    frame.innerHTML = `
+      <div style="font-size: 10px; text-transform: uppercase; color: #555; margin-bottom: 5px; font-family: monospace;">BY: ${photo.by || 'ANONYMOUS'}</div>
+      <img src="${photo.src}" alt="${photo.cap}">
+      <p class="caption">${photo.cap}</p>
+    `;
+    wallGrid.appendChild(frame);
+  });
 }
 
+  // File Submission Pipeline Processing (FIXED VERSION)
+  document.getElementById('submitPhotoBtn').addEventListener('click', function() {
+    const uploaderInput = document.getElementById('uploaderInput');
+    const fileInput = document.getElementById('fileInput');
+    const captionInput = document.getElementById('captionInput');
+    const sizeInput = document.getElementById('sizeInput');
+
+    // Make sure a file is actually selected
+    if (!fileInput.files || fileInput.files.length === 0) {
+      alert("Select an image file asset first.");
+      return;
+    }
+
+    // FIX: Grab the exact first file from the chosen attachments array
+    const selectedFile = fileInput.files[0]; 
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+      const newPhoto = {
+        src: event.target.result,
+        by: uploaderInput.value.trim().toUpperCase() || "ANONYMOUS",
+        cap: captionInput.value.trim() || "untitled timestamp frame",
+        size: sizeInput.value
+      };
+
+      savedPhotos.unshift(newPhoto);
+      localStorage.setItem('my_archive_photos', JSON.stringify(savedPhotos));
+      renderWall();
+
+      // Wipe tracking fields and hide panel context cleanly
+      fileInput.value = '';
+      captionInput.value = '';
+      uploaderInput.value = '';
+      modal.style.display = 'none';
+    };
+    
+    // Pass the single correct file token into the reader pipeline
+    reader.readAsDataURL(selectedFile);
+  });
+
+  
 /* slightly-bent scatter: each card gets its own tilt + drop + tape angle */
 const rot = () => (Math.random()*7 - 3.5).toFixed(2) + "deg";
 const drop = () => (Math.random()*46 - 10).toFixed(0) + "px";
 const trot = () => (Math.random()*16 - 8).toFixed(1) + "deg";
 
 const wall = document.querySelector(".gallery");
-
-// 3. Grid Rendering Engine (UNTOUCHED POLAROID LAYOUT DESIGN)
-function renderWall() {
-  if (!wall) return;
-  wall.innerHTML = ''; 
-
-  PHOTOS.forEach((p, i) => {
-    const d = document.createElement("div");
-    d.className = "polaroid " + (p.size || "w-wide");
-    d.style.setProperty("--rot", rot());
-    d.style.setProperty("--drop", drop());
-    d.style.setProperty("--trot", trot());
-    
-    // UI UNTOUCHED: Exactly matches your classic polaroid structure
-    d.innerHTML = `<div class="tape"></div><span class="num">NO.${String(i+1).padStart(3,"0")}</span>
-                   <img src="${p.src}" alt="${p.cap}" loading="lazy"><div class="cap">${p.cap}</div>`;
-    
-    d.addEventListener("click", () => openLB(i));
-    wall.appendChild(d);
-  });
-
-  /* Re-attach Intersection Observer fade-in metrics safely */
-  const io = new IntersectionObserver(es => {
-    es.forEach((e) => { if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target);} });
-  }, {threshold:.15});
-  document.querySelectorAll(".polaroid").forEach(el => io.observe(el));
-}
-
-// 3.5 Fetch Live Public Images from Cloud Database
-async function fetchCloudPhotos() {
-  try {
-    const { data, error } = await supabase.storage.from('photos').list('', {
-      limit: 100,
-      sortBy: { column: 'created_at', order: 'desc' }
-    });
-
-    if (error) throw error;
-
-    if (data && data.length > 0) {
-      const cloudPhotos = data.map(file => {
-        const publicUrl = supabase.storage.from('photos').getPublicUrl(file.name).data.publicUrl;
-        
-        let extractedCaption = "untitled frame";
-        try {
-          if(file.name.includes('___')) {
-            const parts = file.name.split('___');
-            const capWithExt = parts[1];
-            extractedCaption = decodeURIComponent(capWithExt.substring(0, capWithExt.lastIndexOf('.')));
-          }
-        } catch(e) { console.error(e); }
-
-        return {
-          src: publicUrl,
-          cap: extractedCaption,
-          size: "w-wide" // Fallback layout mapping
-        };
-      });
-
-      PHOTOS = [...cloudPhotos, ...DEFAULT_PHOTOS];
-      renderWall();
-    }
-  } catch (err) {
-    console.error("Cloud synchronisation failure:", err);
-  }
-}
-
-// 4. Submission Pipeline Listener System (Global Cloud Send Engine)
-document.getElementById('submitPhotoBtn').addEventListener('click', async function() {
-  const fileInput = document.getElementById('fileInput');
-  const captionInput = document.getElementById('captionInput');
-  const sizeInput = document.getElementById('sizeInput');
-  const submitBtn = document.getElementById('submitPhotoBtn');
-
-  if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
-    alert("Select an image asset file first.");
-    return;
-  }
-
-  if (SUPABASE_ANON_KEY.startsWith("YOUR_ANON_KEY")) {
-    alert("Please replace the placeholder key with your actual anon key from Supabase settings!");
-    return;
-  }
-
-  submitBtn.disabled = true;
-  submitBtn.textContent = "Uploading Live...";
-
-  const targetFile = fileInput.files[0];
-  const fileExt = targetFile.name.split('.').pop();
-  
-  const cleanCaption = encodeURIComponent(captionInput.value.trim() || "untitled frame");
-  const uniqueFileName = `${Date.now()}___${cleanCaption}.${fileExt}`;
-
-  try {
-    const { data, error } = await supabase.storage
-      .from('photos')
-      .upload(uniqueFileName, targetFile, {
-        cacheControl: '3600',
-        upsert: false
-      });
-
-    if (error) throw error;
-
-    fileInput.value = '';
-    captionInput.value = '';
-    modal.style.display = 'none';
-    
-    await fetchCloudPhotos();
-
-  } catch (err) {
-    console.error("Cloud broadcast exception:", err);
-    alert("Upload failed. Double check your bucket permissions policy configuration!");
-  } finally {
-    submitBtn.disabled = false;
-    submitBtn.textContent = "Post Live";
-  }
+PHOTOS.forEach((p,i)=>{
+  const d = document.createElement("div");
+  d.className = "polaroid " + p.size;
+  d.style.setProperty("--rot", rot());
+  d.style.setProperty("--drop", drop());
+  d.style.setProperty("--trot", trot());
+  d.innerHTML = `<div class="tape"></div><span class="num">NO.${String(i+1).padStart(3,"0")}</span>
+                 <img src="${p.src}" alt="${p.cap}" loading="lazy"><div class="cap">${p.cap}</div>`;
+  d.addEventListener("click", ()=> openLB(i));
+  wall.appendChild(d);
 });
 
-/* fade in on scroll (initial load) */
+/* fade in on scroll */
 const io = new IntersectionObserver(es=>{
   es.forEach((e)=>{ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target);} });
 },{threshold:.15});
@@ -403,19 +356,13 @@ function showLB(){
   document.getElementById("lbImg").src = PHOTOS[cur].src;
   document.getElementById("lbCap").textContent = PHOTOS[cur].cap;
 }
-if(lb) {
-  lb.addEventListener("click", e=>{ if(e.target === lb) closeLB(); });
-}
+lb.addEventListener("click", e=>{ if(e.target === lb) closeLB(); });
 document.addEventListener("keydown", e=>{
-  if(!lb || !lb.classList.contains("open")) return;
+  if(!lb.classList.contains("open")) return;
   if(e.key === "Escape") closeLB();
   if(e.key === "ArrowLeft") stepLB(-1);
   if(e.key === "ArrowRight") stepLB(1);
 });
-
-// Run baseline renderer engine and instantly sync global user entries
-renderWall();
-fetchCloudPhotos();
 </script>
 </body>
 </html>
