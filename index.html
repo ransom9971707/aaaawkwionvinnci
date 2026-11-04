@@ -231,7 +231,7 @@
 <footer>shot on the streets ✦ developed in the group chat ✦ <b>nyc forever</b></footer>
 
 <script>
-// 1. Rename array to match Kimi's exact active structural lookup
+// 1. Base configuration snapshot array
 const DEFAULT_PHOTOS = [
   {src:"pics/1_Vibrant_Nighttime_Photos_of_Times.png",      cap:"times sq at 2am, no thoughts",        size:"w-wide", by:"STREETZ ARCHIVE"},
   {src:"pics/2_Busy_People_Walking_on_Brooklyn_Bridge.png", cap:"golden hour >>> everything else",     size:"w-tall", by:"STREETZ ARCHIVE"},
@@ -243,14 +243,14 @@ const DEFAULT_PHOTOS = [
   {src:"pics/4_NYC_Style_Diary_The_Streets_of_Soho.png",    cap:"main character energy",               size:"w-tall", by:"STREETZ ARCHIVE"},
 ];
 
-// 2. Initialize memory using Kimi's active loop token variable name: PHOTOS
+// 2. Initialize and load active memory array states
 let PHOTOS = JSON.parse(localStorage.getItem('my_archive_photos')) || [];
 if (PHOTOS.length === 0) {
   PHOTOS = DEFAULT_PHOTOS;
   localStorage.setItem('my_archive_photos', JSON.stringify(PHOTOS));
 }
 
-// Modal View Action Hooks
+// Modal Toggle Window Hook points
 const modal = document.getElementById('uploadModal');
 if(document.getElementById('openUploadBtn')) {
   document.getElementById('openUploadBtn').addEventListener('click', (e) => { e.preventDefault(); modal.style.display = 'flex'; });
@@ -259,16 +259,16 @@ if(document.getElementById('closeUploadBtn')) {
   document.getElementById('closeUploadBtn').addEventListener('click', () => { modal.style.display = 'none'; });
 }
 
-/* slightly-bent scatter: each card gets its own tilt + drop + tape angle */
+/* slightly-bent scatter calculation tools */
 const rot = () => (Math.random()*7 - 3.5).toFixed(2) + "deg";
 const drop = () => (Math.random()*46 - 10).toFixed(0) + "px";
 const trot = () => (Math.random()*16 - 8).toFixed(1) + "deg";
 
-// 3. Render Wall Engine: Perfectly preserved layout rendering loop
+// 3. Grid Rendering Engine (Reverted to show only sequential slot tokens)
 function renderWall() {
   const wall = document.querySelector(".gallery");
   if (!wall) return;
-  wall.innerHTML = ''; // Safely clear timeline entries
+  wall.innerHTML = ''; 
 
   PHOTOS.forEach((p, i) => {
     const d = document.createElement("div");
@@ -277,13 +277,10 @@ function renderWall() {
     d.style.setProperty("--drop", drop());
     d.style.setProperty("--trot", trot());
     
-    // Injects username beautifully above photo frame without disrupting design specs
+    // UI RESTORED: Removed name injection tag completely, leaving only Kimi's exact layout
     d.innerHTML = `
       <div class="tape"></div>
-      <span class="num" style="display:flex; justify-content:space-between; width: calc(100% - 20px);">
-        <span>NO.${String(i+1).padStart(3,"0")}</span>
-        <span style="color:#ff3e3e; font-size:9px; letter-spacing:0.5px;">BY: ${p.by || 'ANONYMOUS'}</span>
-      </span>
+      <span class="num">NO.${String(i+1).padStart(3,"0")}</span>
       <img src="${p.src}" alt="${p.cap}" loading="lazy">
       <div class="cap">${p.cap}</div>
     `;
@@ -292,14 +289,14 @@ function renderWall() {
     wall.appendChild(d);
   });
 
-  /* Re-attach IntersectionObserver for fade-in scroll effect */
+  /* Re-attach Intersection Observer fade metrics */
   const io = new IntersectionObserver(es => {
     es.forEach((e) => { if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target);} });
   }, {threshold:.15});
   document.querySelectorAll(".polaroid").forEach(el => io.observe(el));
 }
 
-// 4. File Submission Pipeline Processing
+// 4. File submission collection pipelines
 document.getElementById('submitPhotoBtn').addEventListener('click', function() {
   const uploaderInput = document.getElementById('uploaderInput');
   const fileInput = document.getElementById('fileInput');
@@ -307,7 +304,7 @@ document.getElementById('submitPhotoBtn').addEventListener('click', function() {
   const sizeInput = document.getElementById('sizeInput');
 
   if (!fileInput.files || fileInput.files.length === 0) {
-    alert("Select an image asset first.");
+    alert("Select an image asset file first.");
     return;
   }
 
@@ -315,6 +312,7 @@ document.getElementById('submitPhotoBtn').addEventListener('click', function() {
   const reader = new FileReader();
 
   reader.onload = function(event) {
+    // Keeps attribution saved inside the data payload cleanly for references
     const newPhoto = {
       src: event.target.result,
       by: uploaderInput.value.trim().toUpperCase() || "ANONYMOUS",
@@ -326,7 +324,7 @@ document.getElementById('submitPhotoBtn').addEventListener('click', function() {
     localStorage.setItem('my_archive_photos', JSON.stringify(PHOTOS));
     renderWall();
 
-    // Clear and drop panel states
+    // Reset interface components and drop screen modal overlay
     fileInput.value = '';
     captionInput.value = '';
     uploaderInput.value = '';
@@ -335,14 +333,14 @@ document.getElementById('submitPhotoBtn').addEventListener('click', function() {
   reader.readAsDataURL(selectedFile);
 });
 
-/* marquee content */
+/* marquee loop strings setup */
 const phrase = "FRESH FRAMES <em>✦</em> STRAIGHT OFF THE SD CARD <em>✦</em> NYC FOREVER <em>✦</em> NO PERMISSION NEEDED <em>✦</em> ";
 const mqElement = document.getElementById("mq");
 if(mqElement) {
   mqElement.innerHTML = phrase.repeat(6);
 }
 
-/* lightbox rendering configuration hooks */
+/* interactive lightbox runtime loops */
 let cur = 0;
 const lb = document.getElementById("lightbox");
 function openLB(i){ cur = i; showLB(); lb.classList.add("open"); document.body.style.overflow="hidden"; }
@@ -363,9 +361,12 @@ document.addEventListener("keydown", e => {
   if(e.key === "ArrowRight") stepLB(1);
 });
 
-// Run live baseline map engine rendering cycle instantly
+// Run layout generator on client machines instantly
 renderWall();
 </script>
+</body>
+</html>
+
 </body>
 </html>
 
