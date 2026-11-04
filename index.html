@@ -237,6 +237,9 @@
 <!-- Include the official Supabase engine link safely -->
 <script src="https://jsdelivr.net"></script>
 
+<!-- Include the official Supabase database client securely -->
+<script src="https://jsdelivr.net"></script>
+
 <script>
 // ✦ CONFIGURATION MATRIX: Paste your public Supabase credentials here!
 const SUPABASE_URL = "https://supabase.com/dashboard/project/klwbozvsxsbtarrsyulh/storage/files/buckets/photos";
@@ -245,7 +248,6 @@ const SUPABASE_ANON_KEY = "sb_publishable_0-eOZkAvNpd-2Lpf42j9yQ_ASksrwQF";
 // Initialize the cloud database instance safely
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-// 1. Base configuration snapshot array (Your original hardcoded Kimi defaults)
 const DEFAULT_PHOTOS = [
   {src:"pics/1_Vibrant_Nighttime_Photos_of_Times.png",      cap:"times sq at 2am, no thoughts",        size:"w-wide"},
   {src:"pics/2_Busy_People_Walking_on_Brooklyn_Bridge.png", cap:"golden hour >>> everything else",     size:"w-tall"},
@@ -257,7 +259,6 @@ const DEFAULT_PHOTOS = [
   {src:"pics/4_NYC_Style_Diary_The_Streets_of_Soho.png",    cap:"main character energy",               size:"w-tall"},
 ];
 
-// Active timeline rendering container array
 let PHOTOS = [...DEFAULT_PHOTOS];
 
 // Modal View Component Toggle Controller
@@ -274,21 +275,21 @@ const rot = () => (Math.random()*7 - 3.5).toFixed(2) + "deg";
 const drop = () => (Math.random()*46 - 10).toFixed(0) + "px";
 const trot = () => (Math.random()*16 - 8).toFixed(1) + "deg";
 
+const wall = document.querySelector(".gallery");
+
 // 3. Grid Rendering Engine (UNTOUCHED POLAROID LAYOUT DESIGN)
 function renderWall() {
-  const wall = document.querySelector(".gallery");
   if (!wall) return;
   wall.innerHTML = ''; 
 
   PHOTOS.forEach((p, i) => {
-    const computedSize = p.size || (i % 2 === 0 ? "w-wide" : "w-tall");
     const d = document.createElement("div");
-    d.className = "polaroid " + computedSize;
+    d.className = "polaroid " + (p.size || "w-wide");
     d.style.setProperty("--rot", rot());
     d.style.setProperty("--drop", drop());
     d.style.setProperty("--trot", trot());
     
-    // UI RESTORED: Pure classic layout output code with no extra labels.
+    // UI UNTOUCHED: Exactly matches your classic polaroid structure
     d.innerHTML = `<div class="tape"></div><span class="num">NO.${String(i+1).padStart(3,"0")}</span>
                    <img src="${p.src}" alt="${p.cap}" loading="lazy"><div class="cap">${p.cap}</div>`;
     
@@ -328,7 +329,8 @@ async function fetchCloudPhotos() {
 
         return {
           src: publicUrl,
-          cap: extractedCaption
+          cap: extractedCaption,
+          size: "w-wide" // Fallback layout mapping
         };
       });
 
@@ -344,6 +346,7 @@ async function fetchCloudPhotos() {
 document.getElementById('submitPhotoBtn').addEventListener('click', async function() {
   const fileInput = document.getElementById('fileInput');
   const captionInput = document.getElementById('captionInput');
+  const sizeInput = document.getElementById('sizeInput');
   const submitBtn = document.getElementById('submitPhotoBtn');
 
   if (!fileInput || !fileInput.files || fileInput.files.length === 0) {
@@ -383,28 +386,37 @@ document.getElementById('submitPhotoBtn').addEventListener('click', async functi
 
   } catch (err) {
     console.error("Cloud broadcast exception:", err);
-    alert("Upload failed. Make sure your storage bucket 'photos' policy is fully enabled for anonymous uploads!");
+    alert("Upload failed. Double check your bucket permissions policy configuration!");
   } finally {
     submitBtn.disabled = false;
     submitBtn.textContent = "Post Live";
   }
 });
 
-// UI RESTORED: Completely removed the script that overwrote your beautiful marquee text animations!
+/* fade in on scroll (initial load) */
+const io = new IntersectionObserver(es=>{
+  es.forEach((e)=>{ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target);} });
+},{threshold:.15});
+document.querySelectorAll(".polaroid").forEach(el=>io.observe(el));
 
-/* Lightbox popup interactions */
+/* marquee content */
+const phrase = "FRESH FRAMES <em>✦</em> STRAIGHT OFF THE SD CARD <em>✦</em> NYC FOREVER <em>✦</em> NO PERMISSION NEEDED <em>✦</em> ";
+document.getElementById("mq").innerHTML = phrase.repeat(6);
+
+/* lightbox */
 let cur = 0;
 const lb = document.getElementById("lightbox");
 function openLB(i){ cur = i; showLB(); lb.classList.add("open"); document.body.style.overflow="hidden"; }
 function closeLB(){ lb.classList.remove("open"); document.body.style.overflow=""; }
 function stepLB(n){ cur = (cur + n + PHOTOS.length) % PHOTOS.length; showLB(); }
 function showLB(){
-  if(!PHOTOS[cur]) return;
   document.getElementById("lbImg").src = PHOTOS[cur].src;
   document.getElementById("lbCap").textContent = PHOTOS[cur].cap;
 }
-if(lb) { lb.addEventListener("click", e => { if(e.target === lb) closeLB(); }); }
-document.addEventListener("keydown", e => {
+if(lb) {
+  lb.addEventListener("click", e=>{ if(e.target === lb) closeLB(); });
+}
+document.addEventListener("keydown", e=>{
   if(!lb || !lb.classList.contains("open")) return;
   if(e.key === "Escape") closeLB();
   if(e.key === "ArrowLeft") stepLB(-1);
